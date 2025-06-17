@@ -7,6 +7,7 @@ const server = http.createServer(function(request: any, response: any) {
     response.end();
 });
 
+server
 
 server.listen(8080, function() {
     console.log((new Date()) + ' Server is listening on port 8080');
@@ -22,3 +23,28 @@ server.listen(8080, function() {
 function originIsAllowed(origin: string) {
   return true;
 }
+
+wsServer.on('request', function(request) {
+    console.log("inside connect");
+
+    if (!originIsAllowed(request.origin)) {
+      // Make sure we only accept requests from an allowed origin
+      request.reject();
+      console.log((new Date()) + ' Connection from origin ' + request.origin + ' rejected.');
+      return;
+    }
+    
+    var connection = request.accept('echo-protocol', request.origin);
+    console.log((new Date()) + ' Connection accepted.');
+    connection.on('message', function(message) {
+
+        // Todo add rate limitting logic here 
+        if (message.type === 'utf8') {
+            try {
+                messageHandler(connection, JSON.parse(message.utf8Data));
+            } catch(e) {
+
+            }
+        }
+    });
+});
